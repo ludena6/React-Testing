@@ -1,25 +1,12 @@
 name: Deploy
-
 on:
   push:
     branches:
       - main
-env:
-  VITE_MANA: days
-  VITE_KEY1: "er"
-  VITE_KEY2: ${{ secrets.GITHUB_TOKEN  }}
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    env:
-      VITE_MANA1: days1
-      VITE_KEY: ${{ secrets.VITE_KEY }}
-      VITE_KEY1: "er1"
-      VITE_KEY2: ${{ secrets.GITHUB_TOKEN  }}
-    
-
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -30,7 +17,54 @@ jobs:
           node-version: 16
 
       - name: Install dependencies
-#         uses: bahmutov/npm-install@v1
-        run: echo "$Greeting $First_Name. Today is $DAY_OF_WEEK!"
-        env:
-          First_Name: ${{ secrets.GITHUB_TOKEN }}
+        uses: bahmutov/npm-install@v1
+
+      - name: Build project
+        run: npm run build
+
+
+      - name: Upload production-ready build files
+        uses: actions/upload-artifact@v2
+        with:
+          name: production-files
+          path: ./build
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify runner + deployment step
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
+
+#     steps:
+#       - name: Download artifact
+#         uses: actions/download-artifact@v2
+#         with:
+#           name: production-files
+#           path: ./dist
+    
+
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./dist
+#         env:
+#           VITE_DAY: days
+#           VITE_KEYS:  ${{ secrets.GITHUB_TOKEN }}
+#           VITE_KEY1: "er3"
+#           VITE_KEY2: ${{ secrets.GITHUB_TOKEN  }}
