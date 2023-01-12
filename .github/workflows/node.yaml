@@ -11,4 +11,4 @@ jobs:
       - name: test scretes
         run: echo " mydata $data "
         env:
-          data: ${{ secrets.GITHUB_TOKEN }}
+          data: ${{ secrets.GITHUB_TOKEN1 }}
